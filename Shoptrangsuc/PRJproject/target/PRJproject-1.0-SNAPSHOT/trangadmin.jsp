@@ -1,0 +1,142 @@
+<%-- 
+    Document   : trangadmin
+    Created on : Jul 10, 2023, 3:05:12 PM
+    Author     : ddand
+--%>
+
+<%@page import="DAOs.SanPhamDAO"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="DAOs.AdminDAO"%>
+<%@page import="java.nio.charset.StandardCharsets"%>
+<%@page import="java.net.URLDecoder"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <link rel="stylesheet" href="/css/style.css">
+        <title>Trang admin</title>
+    </head>
+    <body>
+        <div class="loader">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <%
+            if (session.getAttribute("quantri") == null) {
+                Cookie[] cookies = request.getCookies();
+                String fullname = null;
+                if (cookies != null) {
+//                if (session.getAttribute("acc") == null) {
+//                    response.sendRedirect("/");
+//                }
+//            } else {
+
+                    boolean flag = false;
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals("quantri") && !cookie.getValue().equals("")) {
+                            flag = true;
+                            session.setAttribute("quantri", cookie.getValue());
+                            break;
+                        }
+                    }
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals("nameQuantri")) {
+                            fullname = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8.toString());
+                            session.setAttribute("nameQuantri", fullname);
+                            break;
+                        }
+                    }
+                    if (!flag) {
+                        response.sendRedirect("/Dashboard");
+                    }
+
+                }
+            }
+        %>
+        <div class="admin_bg"></div>
+        <div class="admin_container container">
+            <div class="admin_header">
+                <div class="nav_admin">
+                    <a href="/Admin/Sanpham" class="nav_admin-link">Sản phẫm</a>
+                    <a href="/Admin/HoaDon" class="nav_admin-link nav_notin">Hóa đơn</a>
+
+                </div>
+                <a href="/Home" class="logo__item admin_logo">BETI <span>®</span></a>
+                <div class="nav_admin-right">
+                    <input type="text" id="searchInput" onblur="search()" placeholder="Nhập từ khóa">
+                    <button type="button" id="btnSearch"><i class='bx bx-search'></i></button>
+                    <h1 class="admin_nameside"><%=session.getAttribute("nameQuantri")%></h1>
+                </div>
+            </div>
+            <div class="admin_product-List" id="searchResults">
+                <!-- ======== add ============== -->
+                <a href="/Admin/Sanpham/New" class="admin_product-function-add"><i class='bx bx-plus-medical'></i>Add new
+                    product</a>
+                    <%
+                        SanPhamDAO dao = new SanPhamDAO();
+                        ResultSet rs = dao.getAllSanPham();
+                        while (rs.next()) {
+                    %>
+
+                <!-- ======== item1 ============== -->
+                <div class="admin_product-item">
+                    <img src="<%= rs.getString("hinhanh")%>" alt="">
+
+                    <div class="admin_product-item-descripttion">
+                        <div>
+                            <p class="admin_product-item-id"><span>ID:</span><%= rs.getString("masanpham")%></p>
+                            <p class="admin_product-item-name"><%= rs.getString("tensanpham")%></p>
+                            <p class="admin_product-item-price"><%= String.format("%,.0f đ", rs.getDouble("giatien"))%></p>
+                        </div>
+                        <div>
+                            <p class="admin_product-item-id">Số Lượng: <span><%= rs.getString("soluong")%></span></p>
+                            <p>Chất liệu: <%= rs.getString("chatlieu")%></p>
+                            <p>Loại: <%= rs.getString("loai")%></p>
+                        </div>
+                    </div>
+                    <div class="admin_product-function">
+                        <a href="/Admin/Sanpham/Edit/<%= rs.getString("masanpham")%>" class="admin_product-function-edit"><i class='bx bxs-edit-alt'></i></a>
+                        <a href="/Admin/Sanpham/Delete/<%= rs.getString("masanpham")%>" class="admin_product-function-remove"><i class='bx bxs-trash-alt'></i></a>
+                    </div>
+                </div>
+                <%
+                    }
+                %> 
+            </div>
+        </div>
+        <a class="scroll__up" id="scroll-up" href="#">
+            <i class='bx bx-arrow-to-top'></i>
+        </a>
+        <script src="/js/swiper-bundle.min.js"></script>
+        <script src="/js/popup.js"></script>
+        <script>
+                        function search() {
+                            console.log("hello");
+                            let input = document.getElementById("searchInput").value.toString().toUpperCase();
+                            let container = document.getElementById("searchResults");
+                            var itemsName = container.getElementsByClassName("admin_product-item-name");
+                            let items = container.getElementsByClassName("admin_product-item");
+                            console.log(itemsName);
+
+                            // Duyệt qua danh sách sản phẩm và ẩn hiện các sản phẩm tương ứng
+                            for (var i = 0; i < itemsName.length; i++) {
+                                let name = itemsName[i].innerText.toString().toUpperCase();
+                                console.log(name);
+                                console.log(input);
+                                console.log(name.includes(input));
+                                if (name.includes(input)) {
+                                    console.log(i);
+                                    items[i].style.display = "flex";
+                                } else {
+                                    items[i].style.display = "none";
+                                }
+                            }
+                        }</script>
+        <script src="/js/main.js"></script>
+    </body>
+</html>
